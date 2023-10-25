@@ -70,6 +70,7 @@ class tracer:
         for i in range(len(self.data_files)):
             print(self.data_files[i], ": max vall_acc - ", max_val[i], ", mean vall_acc - ", mean_val[i], ", indexes - ",
                   idx[i])
+        print("two first", (max_val[0] - max_val[1]) * 100)
 
     def explore_best_loss_result(self):
         min_val = []
@@ -91,6 +92,7 @@ class tracer:
         for i in range(len(self.data_files)):
             print(self.data_files[i], ": min vall_loss - ", min_val[i], ", mean vall_loss - ", mean_val[i], ", indexes - ",
                   idx[i])
+        print("two first", (min_val[0]-min_val[1])*100)
 
     def set_benchmark_curves(self, idx):
         for i in idx:
@@ -131,9 +133,15 @@ class tracer:
                 train_loss[0].append(buf1 / N)
                 valid_loss[0].append(buf3 / N)
             buf4 = 0
+            med_gelu = 0
             for j in range(N):
                 buf4 += max(self.valid_data_bcmk[idx_bench][j * self.data_epochs_bcmk[idx_bench] : (j+1) * self.data_epochs_bcmk[idx_bench]])
+                gl = self.valid_data_bcmk[idx_bench][j * self.data_epochs_bcmk[idx_bench] : (j+1) * self.data_epochs_bcmk[idx_bench]].copy()
+                gl.sort()
+                med_gelu += gl[self.data_epochs[idx_bench] // 2]
             buf4 /=N
+
+            med_gelu /=N
             N = len(self.train_data[idx_mix]) // self.data_epochs[idx_mix]
             for i in range(self.data_epochs[idx_mix]):
                 buf0, buf1, buf2, buf3 = 0, 0, 0, 0
@@ -148,11 +156,19 @@ class tracer:
                 valid_loss[1].append(buf3 / N)
 
             buf5 = 0
+            med_mix = 0
             for j in range(N):
                 buf5 += max(self.valid_data[idx_mix][
                             j * self.data_epochs[idx_mix]: (j + 1) * self.data_epochs[idx_mix]])
+                mx = self.valid_data[idx_mix][
+                            j * self.data_epochs[idx_mix]: (j + 1) * self.data_epochs[idx_mix]].copy()
+                mx.sort()
+                med_mix += mx[self.data_epochs[idx_mix] // 2]
             buf5 /= N
-            print("gelu: ", buf4, " mixture: ", buf5)
+
+            med_mix /= N
+            print("gelu: ", buf4*100, " mixture: ", buf5*100, " delta:  " , (buf5-buf4)*100)
+            print("gelu: ", med_gelu*100, " mixture: ", med_mix*100, " delta:  ", (med_mix-med_gelu)*100)
             x = np.linspace(1, self.data_epochs[idx_mix], self.data_epochs[idx_mix])
 
             fig = plt.figure(figsize=(16, 8))
@@ -195,10 +211,12 @@ class tracer:
 
 epochs =[ 70, 70]
 num_char = [4,4]
-filenames = ["C:/Users/ADostovalova/Desktop/work/функция_активации/best/ model_classify_cifar__resnet20_mixture_1.csv",
-             "C:/Users/ADostovalova/Desktop/work/функция_активации/best/ model_classify_cifar__resnet20_gelu.csv",
+filenames = [#"E:/ФА_статьи/best/archive/model_classify_cifar_resnet56_mixture_2.csv",
+            #"E:/ФА_статьи/best/archive/model_classify_cifar_resnet56_gelu.csv",
+"E:/ФА_статьи/best/archive/model_classify_cifar__resnet20_mixture_1.csv",
+"E:/ФА_статьи/best/archive/model_classify_cifar__resnet20_gelu.csv"
              ]
-curv_names = ['resnet20_mix', 'resnet20_gelu']
+curv_names = ['resnet56_mix', 'resnet56_gelu']
 tr = tracer(filenames,epochs, num_char, curv_names)
 tr.read_data()
 #tr.explore_best_loss_result()
