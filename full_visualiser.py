@@ -125,11 +125,15 @@ class tracer:
                     buf1 += self.train_loss_bcmk[idx_bench][j * self.data_epochs_bcmk[idx_bench] + i]
                     buf2 += self.valid_data_bcmk[idx_bench][j * self.data_epochs_bcmk[idx_bench] + i]
                     buf3 += self.valid_loss_bcmk[idx_bench][j * self.data_epochs_bcmk[idx_bench] + i]
+
                 train_data[0].append(buf0 / N)
                 valid_data[0].append(buf2 / N)
                 train_loss[0].append(buf1 / N)
                 valid_loss[0].append(buf3 / N)
-
+            buf4 = 0
+            for j in range(N):
+                buf4 += max(self.valid_data_bcmk[idx_bench][j * self.data_epochs_bcmk[idx_bench] : (j+1) * self.data_epochs_bcmk[idx_bench]])
+            buf4 /=N
             N = len(self.train_data[idx_mix]) // self.data_epochs[idx_mix]
             for i in range(self.data_epochs[idx_mix]):
                 buf0, buf1, buf2, buf3 = 0, 0, 0, 0
@@ -143,6 +147,12 @@ class tracer:
                 train_loss[1].append(buf1 / N)
                 valid_loss[1].append(buf3 / N)
 
+            buf5 = 0
+            for j in range(N):
+                buf5 += max(self.valid_data[idx_mix][
+                            j * self.data_epochs[idx_mix]: (j + 1) * self.data_epochs[idx_mix]])
+            buf5 /= N
+            print("gelu: ", buf4, " mixture: ", buf5)
             x = np.linspace(1, self.data_epochs[idx_mix], self.data_epochs[idx_mix])
 
             fig = plt.figure(figsize=(16, 8))
@@ -183,16 +193,16 @@ class tracer:
 #curv_names = ['efficientNet_mix', 'resnet56_mix', 'resnet20_mix']
 
 
-epochs =[ 400, 400, 400]
-num_char = [4,4,4]
-filenames = ["E:/ФА_статьи/best/model_autoEncoder_lstm_5.csv",
-             "E:/ФА_статьи/best/model_autoEncoder_trans_lstm_3.csv",
-             "E:/ФА_статьи/best/gelu_full_autoEncoder.csv"]
-curv_names = ['autoencoder_lstm', 'autoencoder_transf', 'autoencoder_gelu']
+epochs =[ 70, 70]
+num_char = [4,4]
+filenames = ["C:/Users/ADostovalova/Desktop/work/функция_активации/best/ model_classify_cifar__resnet20_mixture_1.csv",
+             "C:/Users/ADostovalova/Desktop/work/функция_активации/best/ model_classify_cifar__resnet20_gelu.csv",
+             ]
+curv_names = ['resnet20_mix', 'resnet20_gelu']
 tr = tracer(filenames,epochs, num_char, curv_names)
 tr.read_data()
-tr.explore_best_loss_result()
-#tr.explore_best_accuracy_result()
-tr.set_benchmark_curves([2])
-tr.print_the_comparison(1, 0)
+#tr.explore_best_loss_result()
+tr.explore_best_accuracy_result()
+tr.set_benchmark_curves([1])
+tr.print_the_comparison(0, 0)
 plt.show()
